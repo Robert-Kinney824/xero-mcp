@@ -19,23 +19,64 @@ export const AuthenticateTool: IMcpServerTool = {
     const oauth2Process = await open(consentUrl);
 
     const authTask = new Promise<Result>((resolve, reject) => {
-      server.on("request", async (req) => {
+      server.on("request", async (req, res) => {
         if (req.url && req.url.includes("/callback")) {
           try {
             const tokenSet = await XeroClientSession.xeroClient.apiCallback(
               req.url
             );
             XeroClientSession.xeroClient.setTokenSet(tokenSet);
-            await XeroClientSession.xeroClient.updateTenants();
-            XeroClientSession.setActiveTenantId(
-              XeroClientSession.xeroClient.tenants[0].tenantId
-            );
+            await XeroClientSession.xeroClient.updateTenants(false);
+            XeroClientSession.markTenantsLoaded();
+            const tenants = XeroClientSession.xeroClient.tenants ?? [];
+            const previousActive = XeroClientSession.activeTenantId();
+            const previousStillValid =
+              previousActive &&
+              tenants.some((t: any) => t.tenantId === previousActive);
+            if (!previousStillValid && tenants.length > 0) {
+              XeroClientSession.setActiveTenantId(tenants[0].tenantId);
+            }
+            XeroClientSession.saveSession();
+
+            // Render a friendly success page in the browser tab.
+            try {
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.end(
+                `<!doctype html><html><body style="font-family:system-ui;padding:2em">` +
+                  `<h2>Xero auth complete</h2>` +
+                  `<p>${tenants.length} tenant(s) connected. You can close this tab.</p>` +
+                  `<ul>${tenants
+                    .map(
+                      (t: any) =>
+                        `<li>${t.tenantName} <code>(${t.tenantId})</code></li>`
+                    )
+                    .join("")}</ul>` +
+                  `</body></html>`
+              );
+            } catch {}
+
+            const tenantList = tenants
+              .map(
+                (t: any) =>
+                  `  - ${t.tenantName} (${t.tenantId})${
+                    t.tenantId === XeroClientSession.activeTenantId()
+                      ? " [active]"
+                      : ""
+                  }`
+              )
+              .join("\n");
+            const summary =
+              tenants.length === 0
+                ? "Authenticated, but no Xero organisations were granted."
+                : tenants.length === 1
+                  ? `Authenticated successfully. Active tenant: ${tenants[0].tenantName}`
+                  : `Authenticated successfully. ${tenants.length} tenants connected:\n${tenantList}\n\nUse \`switch_tenant\` to change the active tenant.`;
 
             resolve({
               content: [
                 {
                   type: "text",
-                  text: "Authenticated successfully",
+                  text: summary,
                 },
               ],
             });

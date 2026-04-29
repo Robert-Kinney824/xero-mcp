@@ -18,6 +18,7 @@ import { ListOrganisationsTool } from "./Accounting/Organisations.js";
 import { ListPaymentsTool } from "./Accounting/Payments.js";
 import { ListQuotesTool } from "./Accounting/Quotes.js";
 import { GetBalanceSheetTool } from "./Reports/BalanceSheet.js";
+import { ListTenantsTool, SwitchTenantTool } from "./Tenants.js";
 
 export const McpToolsFactory = (function () {
   const tools: IMcpServerTool[] = [
@@ -35,6 +36,8 @@ export const McpToolsFactory = (function () {
     ListOrganisationsTool,
     ListPaymentsTool,
     ListQuotesTool,
+    ListTenantsTool,
+    SwitchTenantTool,
     UpdateBankTransactionTool,
     UpdateInvoiceTool,
     // register new tools here alphabetically
