@@ -18,7 +18,11 @@ import { ListOrganisationsTool } from "./Accounting/Organisations.js";
 import { ListPaymentsTool } from "./Accounting/Payments.js";
 import { ListQuotesTool } from "./Accounting/Quotes.js";
 import { GetBalanceSheetTool } from "./Reports/BalanceSheet.js";
+import { GetBankSummaryTool } from "./Reports/BankSummary.js";
+import { GetExecutiveSummaryTool } from "./Reports/ExecutiveSummary.js";
 import { GetProfitAndLossTool } from "./Reports/ProfitAndLoss.js";
+import { GetTenNinetyNineTool } from "./Reports/TenNinetyNine.js";
+import { GetTrialBalanceTool } from "./Reports/TrialBalance.js";
 import { ListTenantsTool, SwitchTenantTool } from "./Tenants.js";
 
 export const McpToolsFactory = (function () {
@@ -27,9 +31,13 @@ export const McpToolsFactory = (function () {
     CreateBankTransactionsTool,
     CreateContactsTool,
     GetBalanceSheetTool,
+    GetBankSummaryTool,
     GetBankTransactionTool,
+    GetExecutiveSummaryTool,
     GetInvoiceTool,
     GetProfitAndLossTool,
+    GetTenNinetyNineTool,
+    GetTrialBalanceTool,
     ListAccountsTool,
     ListBankTransactionsTool,
     ListContactsTool,

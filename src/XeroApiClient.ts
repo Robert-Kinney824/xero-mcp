@@ -8,7 +8,30 @@ const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const redirectUrl = process.env.XERO_REDIRECT_URI;
 const scopes =
-  "offline_access openid profile accounting.settings accounting.contacts accounting.invoices accounting.banktransactions accounting.payments.read accounting.reports.balancesheet.read accounting.reports.profitandloss.read";
+  // Authn / identity
+  "offline_access openid profile " +
+  // Writeable accounting areas (each grants read + write for that area)
+  "accounting.attachments " +
+  "accounting.banktransactions " +
+  "accounting.contacts " +
+  "accounting.invoices " +
+  "accounting.manualjournals " +
+  "accounting.payments " +
+  "accounting.settings " +
+  // Read-only granular scopes
+  // NB: accounting.journals.read is rejected by Xero as invalid_scope for
+  // this app type (verified via direct authorize-endpoint test). System
+  // journals can mostly be reconstructed from the source documents anyway.
+  "accounting.budgets.read " +
+  "accounting.reports.aged.read " +
+  "accounting.reports.balancesheet.read " +
+  "accounting.reports.banksummary.read " +
+  "accounting.reports.budgetsummary.read " +
+  "accounting.reports.executivesummary.read " +
+  "accounting.reports.profitandloss.read " +
+  "accounting.reports.taxreports.read " +
+  "accounting.reports.tenninetynine.read " +
+  "accounting.reports.trialbalance.read";
 
 if (!client_id || !client_secret || !redirectUrl) {
   throw Error(
