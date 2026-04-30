@@ -1,5 +1,6 @@
 import { ListAccountsTool } from "./Accounting/Accounts.js";
 import { AuthenticateTool } from "./Authenticate.js";
+import { AddHistoryNoteTool } from "./HistoryNote.js";
 import {
   CreateBankTransactionsTool,
   GetBankTransactionTool,
@@ -27,6 +28,7 @@ import { ListTenantsTool, SwitchTenantTool } from "./Tenants.js";
 
 export const McpToolsFactory = (function () {
   const tools: IMcpServerTool[] = [
+    AddHistoryNoteTool,
     AuthenticateTool,
     CreateBankTransactionsTool,
     CreateContactsTool,
