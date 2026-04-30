@@ -81,11 +81,40 @@ export const AuthenticateTool: IMcpServerTool = {
               ],
             });
           } catch (error: any) {
-            reject({
+            // Log full error to stderr so it shows up in the MCP server log.
+            console.error(
+              "[xero-mcp] OAuth callback failed:",
+              error?.message ?? error,
+              error?.response?.body
+                ? `body=${JSON.stringify(error.response.body)}`
+                : "",
+              error?.stack ?? ""
+            );
+            // Try to render the error in the browser tab so the user sees something useful.
+            try {
+              res.writeHead(500, { "Content-Type": "text/html" });
+              res.end(
+                `<h2>Xero auth failed</h2><pre>${
+                  error?.message ?? String(error)
+                }</pre><pre>${
+                  error?.response?.body
+                    ? JSON.stringify(error.response.body, null, 2)
+                    : ""
+                }</pre>`
+              );
+            } catch {}
+            // Resolve (not reject) with a useful text payload so it propagates
+            // through MCP middleware as a normal Result instead of an opaque
+            // [object Object] error.
+            resolve({
               content: [
                 {
                   type: "text",
-                  text: `Error authenticating user: ${error.message}`,
+                  text: `Error authenticating: ${error?.message ?? String(error)}${
+                    error?.response?.body
+                      ? `\nXero response: ${JSON.stringify(error.response.body)}`
+                      : ""
+                  }`,
                 },
               ],
             });
