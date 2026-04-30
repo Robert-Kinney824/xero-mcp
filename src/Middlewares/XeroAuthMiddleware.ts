@@ -23,6 +23,23 @@ export const XeroAuthMiddleware: IRequestMiddleware = async (request, next) => {
       ],
     });
   }
+
+  // Refresh the access token if expired (or about to expire).
+  // This must happen before any tool handler runs so subsequent API calls
+  // never hit Xero with a stale Bearer token.
+  try {
+    await XeroClientSession.ensureFreshToken();
+  } catch (err) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Token refresh failed: ${(err as Error).message}. Re-run \`authenticate\`.`,
+        },
+      ],
+    };
+  }
+
   if (TENANT_OPTIONAL_TOOLS.has(name)) {
     return next(request);
   }

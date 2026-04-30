@@ -23,6 +23,9 @@ type XeroClientConfig = {
   scopes: string[];
 };
 
+const _client_id_for_refresh = client_id;
+const _client_secret_for_refresh = client_secret;
+
 const SESSION_DIR = path.join(os.homedir(), ".xero-mcp");
 const SESSION_FILE = path.join(SESSION_DIR, "session.json");
 
@@ -96,17 +99,40 @@ class XeroApiClient {
     this.saveSession();
   }
 
+  /**
+   * Refreshes the access token if expired (or expiring within 60s).
+   * Uses refreshWithRefreshToken so it works on a cold-started process where
+   * the xero-node openIdClient has not been initialized via apiCallback yet.
+   * Throws if the refresh fails — caller should surface to the user.
+   */
+  async ensureFreshToken(): Promise<void> {
+    if (!this.isAuthenticated()) return;
+    const tokenSet = this.xeroClient.readTokenSet();
+    if (!tokenSet) return;
+    const nowSec = Math.floor(Date.now() / 1000);
+    const expiresAt =
+      typeof tokenSet.expires_at === "number" ? tokenSet.expires_at : 0;
+    const willExpireSoon = expiresAt - nowSec < 60;
+    const expiredFn =
+      typeof tokenSet.expired === "function" ? tokenSet.expired() : false;
+    if (!willExpireSoon && !expiredFn) return;
+    if (!tokenSet.refresh_token) {
+      throw new Error("No refresh_token available; re-authentication required");
+    }
+    const refreshed = await this.xeroClient.refreshWithRefreshToken(
+      _client_id_for_refresh,
+      _client_secret_for_refresh,
+      tokenSet.refresh_token
+    );
+    this.xeroClient.setTokenSet(refreshed);
+    this.saveSession();
+  }
+
   async ensureTenantsLoaded(): Promise<void> {
     if (this._tenantsLoaded) return;
     if (!this.isAuthenticated()) return;
     try {
-      // Refresh access token if needed before listing tenants.
-      const tokenSet = this.xeroClient.readTokenSet();
-      if (tokenSet && tokenSet.expired && tokenSet.expired()) {
-        const refreshed = await this.xeroClient.refreshToken();
-        this.xeroClient.setTokenSet(refreshed);
-        this.saveSession();
-      }
+      await this.ensureFreshToken();
       await this.xeroClient.updateTenants(false);
       this._tenantsLoaded = true;
     } catch (err) {
