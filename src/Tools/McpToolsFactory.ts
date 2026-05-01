@@ -8,6 +8,7 @@ import {
   UpdateBankTransactionTool,
 } from "./Accounting/BankTransactions.js";
 import { CreateContactsTool, ListContactsTool } from "./Accounting/Contacts.js";
+import { UpdateContactTool } from "./Accounting/UpdateContact.js";
 import { IMcpServerTool } from "./IMcpServerTool.js";
 import {
   GetInvoiceTool,
@@ -51,6 +52,7 @@ export const McpToolsFactory = (function () {
     ListTenantsTool,
     SwitchTenantTool,
     UpdateBankTransactionTool,
+    UpdateContactTool,
     UpdateInvoiceTool,
     // register new tools here alphabetically
   ];
